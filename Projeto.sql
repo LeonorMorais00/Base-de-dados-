@@ -33,13 +33,13 @@ CREATE TABLE recinto(
     CONSTRAINT ck_recinto CHECK (capacidade_max > 0) -- RIA-12
 );
 
---utilizador(email, nome, data_nascimento, grupo_sanguíneo, contacto_emergência, segue)
+--utilizador(email, nome, data_nascimento, grupo_sanguíneo, contacto_emergência)
 CREATE TABLE utilizador(
     email VARCHAR(100),
     nome VARCHAR(60) NOT NULL,
     data_nascimento DATE NOT NULL,
     grupo_sanguíneo VARCHAR(3) NOT NULL,
-    contacto_emergência NUMERIC(9) NOT NULL,
+    contacto_emergência NUMERIC(9),
     CONSTRAINT pk_utilizador PRIMARY KEY (email),
     CONSTRAINT ck_utilizador_em CHECK (email LIKE '%@%'),
     CONSTRAINT ck_utilizador_sang CHECK (grupo_sanguíneo IN ('A+','A-','B+','B-','AB+','AB-','O+','O-'))
@@ -90,20 +90,6 @@ CREATE TABLE edição(
 
 
 CREATE TABLE dia(
-    data DATE,
-    nome VARCHAR(60),
-    preço_diário NUMERIC(5,2) NOT NULL,
-    edição CHAR(4),
-    CONSTRAINT pk_dia PRIMARY KEY (festival, edição, data),
-    CONSTRAINT fk_edição FOREIGN KEY (ano) REFERENCES edição(festival, ano)
-        ON DELETE CASCADE ON UPDATE CASCADE ,
-    CONSTRAINT ck_dia_preço_diário CHECK (preço_diário > 0) --RIA-12
-    CONSTRAINT  ck_dia_pertence_edição (dia in (edição)) -- RIA-1
-);
-
-
---Opção 2 - Correção da IA, mas não estou a perceber bem porque
-CREATE TABLE dia(
     festival VARCHAR(60),
     ano CHAR(4),
     data DATE,
@@ -116,8 +102,6 @@ CREATE TABLE dia(
 );
 
 
-
-
 CREATE TABLE concerto(
     id_concerto VARCHAR(20),
     hora_início TIME NOT NULL,
@@ -128,7 +112,7 @@ CREATE TABLE concerto(
     data DATE NOT NULL,  
     CONSTRAINT pk_concerto PRIMARY KEY (id_concerto),
     CONSTRAINT fk_concerto_artista FOREIGN KEY (artista) REFERENCES artista(nome),
-    CONSTRAINT fk_concerto_dia FOREIGN KEY (festival, ano, data) REFERENCES dia(festival, edição, data), 
+    CONSTRAINT fk_concerto_dia FOREIGN KEY (festival, ano, data) REFERENCES dia(festival, ano, data), 
     CONSTRAINT  ck_concerto_horas CHECK (hora_início < hora_fim) -- RIA-2
 );
 
@@ -140,13 +124,13 @@ CREATE TABLE dispositivo(
     utilizador VARCHAR(100) NOT NULL,
     CONSTRAINT pk_dispositivo PRIMARY KEY (n_série),
     CONSTRAINT fk_dispositivo_utilizador FOREIGN KEY (utilizador) REFERENCES utilizador(email),
-    CONSTRAINT ck_dispositvo_saldo CHECK (saldo >= 0 ), --RIA-7
-    CONSTRAINT ck_dispositivo_estado CHECK ( estado IN ('ativo', 'desativado', 'extraviado'))--RIA7
+    CONSTRAINT ck_dispositivo_saldo CHECK (saldo >= 0 ), --RIA-7
+    CONSTRAINT ck_dispositivo_estado CHECK ( estado IN ('ativo', 'bloqueado', 'extraviado'))--RIA-7
 
 );
 
 CREATE TABLE bilhete(
-    id_bilhete NUMERIC(10,0),
+    id_bilhete NUMERIC(10),
     data_compra DATE NOT NULL,
     comprador VARCHAR(100) NOT NULL,
     dispositivo NUMERIC(20),
@@ -177,4 +161,90 @@ CREATE TABLE bilhete_diário(
 );
 
 ------------------------------------------------------------------------------------------------------------------------
-INSERT INTO
+--INSERTS:
+------------------------------------------------------------------------------------------------------------------------
+INSERT INTO festival (nome, ano_criação) VALUES
+    ('NOS Alive', 2007),
+    ('Super Bock Super Rock', 1995),
+    ('MEO Kalorama', 2018);
+
+INSERT INTO recinto (nome, rua, código_postal, localidade, cidade, capacidade_max) VALUES
+    ('Passeio Marítimo de Algés', 'Passeio Marítimo de Algés', '1495-165', 'Algés', 'Oeiras', 55000),
+    ('Herdade do Cabeço da Flauta', 'Estrada Nacional 377', '2970-000', 'Meco', 'Sesimbra', 20000),
+    ('Parque da Bela Vista', 'Avenida Doutor Arlindo Vicente', '1950-037', 'Marvila', 'Lisboa', 35000);
+
+INSERT INTO utilizador(email, nome, data_nascimento, grupo_sanguíneo, contacto_emergência) VALUES
+    ('miguel@gmail.com', 'Miguel','2003-08-06','A+','938000938'),
+    ('luisa@gmail.com', 'Luísa','1968-07-04','AB+','955555555'),
+    ('antonio@gmail.com', 'Antonio','1970-11-13','O-','938000938');
+
+INSERT INTO artista(nome,género_musical, tipo) VALUES
+    ('Katy Perry', 'pop', 'artista'), --artista solo
+    ('Foo Fighters', 'rock alternativo', 'grupo'), --grupo
+    ('Lorde', 'art pop', 'artista');
+
+INSERT INTO edição(festival, ano, recinto, preço_passe) VALUES
+    ('NOS Alive', '2025', 'Passeio Marítimo de Algés', 189.00),
+    ('Super Bock Super Rock','2021','Herdade do Cabeço da Flauta', 200.00),
+    ('MEO Kalorama', '2024', 'Parque da Bela Vista', 150.00),
+    ('NOS Alive', '2023', 'Parque da Bela Vista', 179.00); -- o mesmo festival mudou de recinto entre edições
+
+INSERT INTO alergia_multivalor(email, alergia) VALUES
+    ('miguel@gmail.com', 'camarão'),
+    ('luisa@gmail.com', 'morango'),
+    ('antonio@gmail.com', 'caracol');
+
+INSERT INTO segue(seguidor, seguido) VALUES
+    ('miguel@gmail.com', 'luisa@gmail.com' ), 
+    ('antonio@gmail.com', 'luisa@gmail.com'),
+    ('luisa@gmail.com', 'miguel@gmail.com' );
+
+INSERT INTO dispositivo (n_série, saldo, estado, utilizador) VALUES
+    (1111, 3, 'ativo', 'miguel@gmail.com'),
+    (3, 10, 'bloqueado', 'miguel@gmail.com'),   -- dispositivo bloqueado (o Miguel só tem um ativo)
+    (2, 60, 'extraviado', 'luisa@gmail.com'),    -- dispositivo extraviado...
+    (99, 100, 'ativo', 'luisa@gmail.com'),       -- ...e novo dispositivo ativo do mesmo utilizador
+    (50, 100, 'ativo', 'antonio@gmail.com');
+
+INSERT INTO dia (festival, ano, data, preço_diário) VALUES
+    -- edição com 3 dias
+    ('NOS Alive', '2025', '2025-07-10', 75.00),
+    ('NOS Alive', '2025', '2025-07-11', 80.00),
+    ('NOS Alive', '2025', '2025-07-12', 85.00),
+    -- edição com 3 dias, noutro recinto (festival que mudou de recinto)
+    ('NOS Alive', '2023', '2023-07-06', 70.00),
+    ('NOS Alive', '2023', '2023-07-07', 75.00),
+    ('NOS Alive', '2023', '2023-07-08', 80.00),
+    -- edição com 2 dias (caso limite: mínimo)
+    ('Super Bock Super Rock', '2021', '2021-07-16', 60.00),
+    ('Super Bock Super Rock', '2021', '2021-07-17', 65.00),
+    -- edição com 5 dias (caso limite: máximo)
+    ('MEO Kalorama', '2024', '2024-06-05', 40.00),
+    ('MEO Kalorama', '2024', '2024-06-06', 45.00),
+    ('MEO Kalorama', '2024', '2024-06-07', 50.00),
+    ('MEO Kalorama', '2024', '2024-06-08', 55.00),
+    ('MEO Kalorama', '2024', '2024-06-09', 55.00);
+
+INSERT INTO concerto(id_concerto, hora_início, hora_fim, artista, festival, ano, data) VALUES
+    ('1111', '22:00', '23:00', 'Katy Perry', 'NOS Alive', '2025', '2025-07-10'),
+    ('32', '00:00', '01:00', 'Lorde', 'MEO Kalorama', '2024', '2024-06-06'),
+    ('100', '15:00', '16:00', 'Foo Fighters','Super Bock Super Rock', '2021', '2021-07-16');
+
+INSERT INTO bilhete (id_bilhete, data_compra, comprador, dispositivo) VALUES
+    (1, '2025-03-15', 'miguel@gmail.com',  1111),  -- passe geral já associado ao dispositivo do próprio titular
+    (2, '2024-04-10', 'antonio@gmail.com', 50),    -- passe geral já associado
+    (3, '2021-05-20', 'luisa@gmail.com',   NULL),  -- passe geral ainda por associar a um dispositivo
+    (4, '2025-04-01', 'luisa@gmail.com',   99),    -- bilhete diário associado ao novo dispositivo ativo
+    (5, '2025-05-02', 'miguel@gmail.com',  50),    -- bilhete comprado para terceiros (dispositivo do António)
+    (6, '2021-06-01', 'luisa@gmail.com',   NULL);  -- bilhete diário ainda por associar a um dispositivo 
+
+INSERT INTO passe_geral (id_bilhete, festival, ano) VALUES
+    (1, 'NOS Alive', '2025'),
+    (2, 'MEO Kalorama', '2024'),
+    (3, 'Super Bock Super Rock', '2021');
+
+INSERT INTO bilhete_diário (id_bilhete, festival, ano, data) VALUES
+    (4, 'NOS Alive', '2025', '2025-07-10'),
+    (5, 'NOS Alive', '2025', '2025-07-12'),
+    (6, 'Super Bock Super Rock', '2021', '2021-07-17');
+
