@@ -161,7 +161,7 @@ CREATE TABLE passe_geral(
     ano CHAR(4) NOT NULL,
     CONSTRAINT pk_passe_geral PRIMARY KEY(id_bilhete),
     CONSTRAINT fk_passe_geral FOREIGN KEY(id_bilhete) REFERENCES bilhete
-                        ON DELETE CASCADE ON UPDATE CASCADE
+                        ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_passe_geral_edição FOREIGN KEY (festival, ano) REFERENCES edição(festival, ano)
 );
 
