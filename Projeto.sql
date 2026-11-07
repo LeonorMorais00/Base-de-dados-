@@ -149,7 +149,7 @@ CREATE TABLE bilhete(
     id_bilhete NUMERIC(10,0),
     data_compra DATE NOT NULL,
     comprador VARCHAR(100) NOT NULL,
-    dispositivo VARCHAR(20),
+    dispositivo NUMERIC(20),
     CONSTRAINT pk_bilhete PRIMARY KEY (id_bilhete),
     CONSTRAINT fk_bilhete_comprador FOREIGN KEY (comprador) REFERENCES utilizador(email),
     CONSTRAINT fk_bilhete_dispositivo FOREIGN KEY (dispositivo) REFERENCES dispositivo(n_série)
