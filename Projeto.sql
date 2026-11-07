@@ -41,8 +41,8 @@ CREATE TABLE utilizador(
     grupo_sanguíneo VARCHAR(3) NOT NULL,
     contacto_emergência NUMERIC(9) NOT NULL,
     CONSTRAINT pk_utilizador PRIMARY KEY (email),
-    CONSTRAINT ck_utilizador CHECK (email LIKE '%@%'), -- Não percebi está e tem o mesmo nome que o outro
-    CONSTRAINT ck_utilizador CHECK (grupo_sanguíneo IN ('A+','A-','B+','B-','AB+','AB-','O+','O-'))
+    CONSTRAINT ck_utilizador_em CHECK (email LIKE '%@%'),
+    CONSTRAINT ck_utilizador_sang CHECK (grupo_sanguíneo IN ('A+','A-','B+','B-','AB+','AB-','O+','O-'))
 );
 
 --alergia_multivalor (email, alergia)
@@ -175,3 +175,6 @@ CREATE TABLE bilhete_diário(
                         ON DELETE CASCADE ON UPDATE CASCADE
     CONSTRAINT fk_bilhete_diário_dia FOREIGN KEY (festival, ano, data) REFERENCES dia(festival, ano, data)
 );
+
+------------------------------------------------------------------------------------------------------------------------
+INSERT INTO
