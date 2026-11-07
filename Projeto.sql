@@ -172,6 +172,6 @@ CREATE TABLE bilhete_diário(
     data DATE NOT NULL,
     CONSTRAINT pk_bilhete_diário PRIMARY KEY(id_bilhete),
     CONSTRAINT fk_bilhete_diário FOREIGN KEY(id_bilhete) REFERENCES bilhete
-                        ON DELETE CASCADE ON UPDATE CASCADE
+                        ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_bilhete_diário_dia FOREIGN KEY (festival, ano, data) REFERENCES dia(festival, ano, data)
 );
