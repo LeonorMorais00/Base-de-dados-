@@ -4,8 +4,6 @@
 --RIA-12: capacidade_max tem de ser > 0
 INSERT INTO recinto (nome, rua, código_postal, localidade, cidade, capacidade_max) 
 VALUES ('Mini-Recinto', 'Rua 1', '1000-001', 'Lisboa', 'Lisboa', 0);
-
-
 -- Criar um recinto com capacidade para zero pessoas 
 --new row for relation "recinto" violates check constraint "ck_recinto"
 --DETAIL: Failing row contains (Mini-Recinto, Rua 1, 1000-001, Lisboa, Lisboa, 0).
