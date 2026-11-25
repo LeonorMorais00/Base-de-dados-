@@ -2,6 +2,11 @@ SET search_path TO tabelase3;
 
 /* 1. Hora de início, hora de fim, nome e género musical do artista de cada concerto do Festival Atlântico no dia 19 de junho de 2025, por ordem de hora de início.*/
 
+SELECT concerto.hora_inicio, concerto.hora_fim, concerto.artista, artista.genero_musical
+FROM concerto , artista  
+WHERE concerto.festival = 'Festival Atlântico' and concerto.data = '2025/6/19'
+
+ORDER BY concerto.hora_inicio; 
 /* 2. Nome dos artistas que atuaram no Festival Atlântico em 2025, mas não em 2026. */
 
 (SELECT concerto.artista
