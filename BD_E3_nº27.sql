@@ -7,6 +7,7 @@ FROM concerto , artista
 WHERE concerto.festival = 'Festival Atlântico' and concerto.data = '2025/6/19'
 
 ORDER BY concerto.hora_inicio; 
+
 /* 2. Nome dos artistas que atuaram no Festival Atlântico em 2025, mas não em 2026. */
 
 (SELECT concerto.artista
