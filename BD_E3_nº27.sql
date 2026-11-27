@@ -29,15 +29,44 @@ WHERE concerto.festival = 'Festival Atlântico' and concerto.ano = 2026)
 
 /* 7. Função preco_pago(p_id_bilhete INTEGER) RETURNS NUMERIC, que devolve o preço pago por um bilhete (RIA-6): o preço do passe da edição, se for um passe geral, ou o preço diário do dia, se for um bilhete diário. Se o bilhete não existir, deve ser lançada uma exceção. Usar a função numa consulta que apresente, para cada edição, o festival, o ano, o número de bilhetes vendidos e a receita total. */
 
-CREATE FUNCTION preco_pago(p_id_bilhete INTERGER)
-RETURNS NUMERIC(7, 2)
+CREATE FUNCTION preco_pago(p_id_bilhete INTEGER)
+RETURNS NUMERIC
 AS $preco_pago$
-DECLARE ;
+DECLARE v_tipo VARCHAR(6);
+        v_preco NUMERIC(7, 2);
 BEGIN 
-   SELECT 
-   FROM dia, edicao, bilhete 
-   WHERE id_bilhete = p_id_bilhete;
+   SELECT bilhete.tipo INTO v_tipo
+   FROM  bilhete
+   WHERE bilhete.id_bilhete = p_id_bilhete;
 
+   IF NOT FOUND THEN
+      RAISE EXCEPTION 'O bilhete % não existe', p_id_bilhete;
+   END IF;
+
+   IF v_tipo = 'geral' THEN
+      SELECT edicao.preco_passe INTO v_preco
+      FROM bilhete, edicao
+      WHERE bilhete.festival = edicao.festival
+         AND bilhete.ano = edicao.ano    
+         AND Bilhete.id_bilhete = p_id_bilhete;
+   ELSE
+      SELECT dia.preco_diario INTO v_preco
+      FROM bilhete, dia
+      WHERE bilhete.festival = dia.festival
+         AND bilhete.ano = dia.ano
+         AND bilhete.data = dia.data   
+         AND Bilhete.id_bilhete = p_id_bilhete;
+   END IF;
+   RETURN v_preco;
+End;
+$preco_pago$
+LANGUAGE plpgsql;
+
+SELECT bilhete.festival, bilhete.ano,
+       COUNT(*) AS bilhetes_vendidos,
+       SUM(bilhete.id_bilhete) AS receita_total
+FROM bilhete
+GROUP BY bilhete.festival, bilhete.ano
 
 
 /* 8. Procedimento comprar_bilhete(p_comprador VARCHAR, p_titular VARCHAR, p_festival VARCHAR, p_ano NUMERIC, p_data DATE, p_data_compra DATE, INOUT p_id_bilhete INTEGER DEFAULT NULL), que regista a compra de um bilhete diário para o dia p_data. Antes de inserir o bilhete, o procedimento deve verificar que:
