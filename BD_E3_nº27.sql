@@ -16,7 +16,7 @@ WHERE concerto.festival = 'Festival Atlântico' and concerto.ano = 2025)
 EXCEPT
 (SELECT concerto.artista
 FROM concerto
-WHERE concerto.festival = 'Festival Atlântico' and concerto.ano = 2026)
+WHERE concerto.festival = 'Festival Atlântico' and concerto.ano = 2026);
 
 
 /* 3. Para cada festival, o género musical com mais concertos, considerando todas as edições, e o respetivo número de concertos. Em caso de empate, devem ser apresentados todos os géneros empatados. */
@@ -25,7 +25,30 @@ WHERE concerto.festival = 'Festival Atlântico' and concerto.ano = 2026)
 
 /* 5. Nome dos artistas que atuaram em todas as edições do Festival Atlântico.*/ 
 
+SELECT c.artista AS nome
+FROM concerto AS c
+WHERE c.festival = 'Festival Atlântico'
+GROUP BY c.artista
+HAVING COUNT(DISTINCT c.ano) = (
+    SELECT COUNT(*)
+    FROM edicao AS e
+    WHERE e.festival = 'Festival Atlântico'
+);
+
 /* 6. Para cada dia das edições de 2026, o festival, a data, o número de bilhetes com acesso a esse dia e o número de lugares ainda disponíveis (capacidade da edição menos o número de bilhetes), incluindo os dias sem bilhetes vendidos, por ordem de festival e data. Note que um passe geral dá acesso a todos os dias da sua edição.*/
+
+SELECT d.festival, d.data,
+       COUNT(b.id_bilhete) AS bilhetes_com_acesso,
+       e.capacidade_max - COUNT(b.id_bilhete) AS lugares_disponiveis
+FROM dia AS d
+JOIN edicao AS e
+    ON e.festival = d.festival AND e.ano = d.ano
+LEFT JOIN bilhete AS b
+    ON b.festival = d.festival AND b.ano = d.ano
+    AND (b.tipo = 'geral' OR (b.tipo = 'diario' AND b.data = d.data))
+WHERE e.ano = 2026
+GROUP BY d.festival, d.data, e.capacidade_max
+ORDER BY d.festival, d.data;
 
 /* 7. Função preco_pago(p_id_bilhete INTEGER) RETURNS NUMERIC, que devolve o preço pago por um bilhete (RIA-6): o preço do passe da edição, se for um passe geral, ou o preço diário do dia, se for um bilhete diário. Se o bilhete não existir, deve ser lançada uma exceção. Usar a função numa consulta que apresente, para cada edição, o festival, o ano, o número de bilhetes vendidos e a receita total. */
 
